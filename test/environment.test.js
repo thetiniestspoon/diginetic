@@ -36,3 +36,15 @@ test('energyDelta positive with plentiful food + good fit, negative when starved
   assert.ok(good > 0, `good ${good}`);
   assert.ok(bad < 0, `bad ${bad}`);
 });
+
+test('real phenotypes: small favored in cold, large in warm (guards C1)', () => {
+  const base = createStarterGenome('A');
+  const small = derivePhenotype({ ...base, genes: { ...base.genes, size: 0.2 } });
+  const large = derivePhenotype({ ...base, genes: { ...base.genes, size: 0.8 } });
+  // sanity: phenotype actually carries the size gene now
+  assert.equal(small.size, 0.2);
+  assert.equal(large.size, 0.8);
+  const cold = -0.8, warm = 0.8, food = 0.6;
+  assert.ok(energyDelta(small, cold, food) > energyDelta(large, cold, food), 'cold favors small');
+  assert.ok(energyDelta(large, warm, food) > energyDelta(small, warm, food), 'warm favors large');
+});

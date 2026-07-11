@@ -24,6 +24,11 @@ export class World {
   onWhisper(cb) { this._whisperCb = cb; }
   get population() { return this.organisms.length; }
 
+  destroy() {
+    this.organisms.forEach((o) => o.destroy());
+    this.organisms = [];
+  }
+
   begin(starterGenomes) {
     this.organisms.forEach((o) => o.destroy());
     const w = this.app.renderer.width, h = this.app.renderer.height;

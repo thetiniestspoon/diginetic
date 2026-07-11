@@ -19,7 +19,7 @@ export function derivePhenotype(genome) {
   const radius = 3 + g.size * 11;                 // 3..14 px
   const colorHex = hslToHex(g.hue, 0.55, 0.55);
   const speed = 0.3 + g.speed * 1.7;              // px/tick base
-  return { radius, colorHex, speed, metabolism: g.metabolism, fertility: g.fertility };
+  return { radius, colorHex, speed, metabolism: g.metabolism, fertility: g.fertility, size: g.size };
 }
 
 export function mutate(genome, rng) {

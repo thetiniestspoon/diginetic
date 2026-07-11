@@ -19,6 +19,7 @@ function whisper(text) {
 }
 
 async function startWorld({ seed, params, starterGenomes, worldId }) {
+  if (world) world.destroy();
   world = new World(app, { seed, params });
   let lastNarrate = 0;
   world.onWhisper(async (m) => {
@@ -38,15 +39,19 @@ async function startWorld({ seed, params, starterGenomes, worldId }) {
 async function boot() {
   const ok = await requirePorchSession();
   if (!ok) return;
-  await app.init({ resizeTo: host, antialias: true, backgroundAlpha: 0 });
+  await app.init({ resizeTo: host, antialias: true, backgroundAlpha: 0, preserveDrawingBuffer: true });
   host.appendChild(app.canvas);
-  const shared = await routeShare(location.search, { invokeAction, currentWorldId: null });
+  let shared = null, shareError = false;
+  try {
+    shared = await routeShare(location.search, { invokeAction, currentWorldId: null });
+  } catch (e) { console.warn('share route failed:', e.message); shareError = true; }
   if (shared?.action === 'clone') {
     const { seed, params } = shared.result;
     await startWorld({ seed, params, worldId: shared.result.new_world_id });
     whisper('A world cloned. It is yours now.');
   } else {
     await startWorld({ seed: { label: 'genesis' }, params: { temperature: 0, food: 0.6 } });
+    if (shareError) whisper('That world could not be found.');
   }
   app.ticker.add((ticker) => {
     world.update(ticker.deltaTime);
@@ -63,6 +68,7 @@ document.getElementById('btn-snapshot').addEventListener('click', async () => {
   whisper('A moment kept in amber.');
   if (!currentWorldId) return;
   try {
+    app.renderer.render(app.stage);
     const dataUrl = app.canvas.toDataURL('image/webp', 0.7);
     const thumb_base64 = dataUrl.split(',')[1];
     await invokeAction('make_snapshot', {
