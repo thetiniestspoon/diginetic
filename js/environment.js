@@ -24,8 +24,8 @@ export function fitness(phenotype, localTemp) {
 
 export function energyDelta(phenotype, localTemp, food) {
   const f = fitness(phenotype, localTemp);
-  const gain = food * (0.4 + 0.6 * f) * 0.08;            // feeding scaled by fit
-  const burn = (0.02 + 0.06 * (phenotype.metabolism ?? 0.5));
+  const gain = food * (0.25 + 0.75 * f) * 0.055;
+  const burn = 0.01 + 0.02 * (phenotype.metabolism ?? 0.5);
   return gain - burn;
 }
 
