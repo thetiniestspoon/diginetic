@@ -1,0 +1,14 @@
+diff --git a/workshop-oakpark/rooms/playroom.js b/workshop-oakpark/rooms/playroom.js
+index fb19282e..f478815f 100644
+--- a/workshop-oakpark/rooms/playroom.js
++++ b/workshop-oakpark/rooms/playroom.js
+@@ -499,7 +499,8 @@ function renderArcade(stage) {
+     { slug: '10gens',            title: '10Gens',            icon: '🐉', tint: 'rgba(168,85,247,0.22)',  url: 'https://thetiniestspoon.github.io/10gen/' },
+     { slug: 'octavo',            title: 'Octavo',            icon: '🃏', tint: 'rgba(99,102,241,0.22)',  url: 'https://thetiniestspoon.github.io/octavo/' },
+     { slug: 'waypost',           title: 'Waypost',           icon: '🗺', tint: 'rgba(14,165,233,0.18)',  url: 'https://thetiniestspoon.github.io/waypost/' },
+-    { slug: 'tales-by-lamplight',title: 'Tales by Lamplight',icon: '🏮', tint: 'rgba(245,158,11,0.22)',  url: 'https://thetiniestspoon.github.io/tales-by-lamplight/' }
++    { slug: 'tales-by-lamplight',title: 'Tales by Lamplight',icon: '🏮', tint: 'rgba(245,158,11,0.22)',  url: 'https://thetiniestspoon.github.io/tales-by-lamplight/' },
++    { slug: 'diginetic',         title: 'Diginetic',         icon: '🧫', tint: 'rgba(52,211,153,0.20)',  url: 'https://thetiniestspoon.github.io/diginetic/' }
+   ];
+ 
+   stage.innerHTML = `
