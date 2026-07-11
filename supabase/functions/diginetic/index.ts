@@ -50,7 +50,7 @@ function canonical(v: any): string {
 const handlers: Record<string, (sb: any, body: any, ownerId: string | null) => Promise<Response>> = {
   async spawn_initial_world(sb, body, ownerId) {
     const { name, seed, params, starter_genomes } = body ?? {};
-    if (!name || !seed || !params) return json({ error: 'Missing name/seed/params' }, 400);
+    if (!name || seed == null || !params) return json({ error: 'Missing name/seed/params' }, 400);
     const { data: world, error } = await sb.from('diginetic_worlds')
       .insert({ name, seed, params, owner_id: ownerId, visibility: 'private' }).select().single();
     if (error || !world) return json({ error: error?.message ?? 'World create failed' }, 500);
@@ -119,8 +119,10 @@ const handlers: Record<string, (sb: any, body: any, ownerId: string | null) => P
   async share_world(sb, body, ownerId) {
     const { world_id, visibility } = body ?? {};
     if (!world_id || !visibility) return json({ error: 'Missing world_id/visibility' }, 400);
-    const { error: werr } = await sb.from('diginetic_worlds').update({ visibility }).eq('id', world_id);
+    const { data: updated, error: werr } = await sb.from('diginetic_worlds')
+      .update({ visibility }).eq('id', world_id).eq('owner_id', ownerId).select('id');
     if (werr) return json({ error: werr.message }, 500);
+    if (!updated || updated.length === 0) return json({ error: 'World not found or not owned by caller' }, 403);
     const slug = shortSlug();
     const { error: serr } = await sb.from('diginetic_shares')
       .insert({ kind: 'world', target_world_id: world_id, slug, owner_id: ownerId });
@@ -205,5 +207,7 @@ Deno.serve(async (req) => {
   if (!fn) return json({ error: 'Unknown action', action }, 404);
   const sb = serverClient();
   const ownerId = await callerId(req);
+  const WRITE_ACTIONS = new Set(['spawn_initial_world','tick_reproduction','make_snapshot','share_world','clone_world_from_slug','import_genome_from_slug']);
+  if (WRITE_ACTIONS.has(action) && !ownerId) return json({ error: 'Authentication required' }, 401);
   return fn(sb, body, ownerId);
 });
