@@ -16,8 +16,8 @@ create table if not exists public.diginetic_worlds (
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
-create index if not exists idx_dg_worlds_owner on public.diginetic_worlds(owner_id);
-create index if not exists idx_dg_worlds_visibility on public.diginetic_worlds(visibility);
+create index if not exists diginetic_worlds_owner_idx on public.diginetic_worlds(owner_id);
+create index if not exists diginetic_worlds_visibility_idx on public.diginetic_worlds(visibility);
 
 create table if not exists public.diginetic_genomes (
   id uuid primary key default gen_random_uuid(),
@@ -38,7 +38,7 @@ create table if not exists public.diginetic_organisms (
   state jsonb not null default '{}'::jsonb,
   created_at timestamptz not null default now()
 );
-create index if not exists idx_dg_organisms_world on public.diginetic_organisms(world_id);
+create index if not exists diginetic_organisms_world_idx on public.diginetic_organisms(world_id);
 
 create table if not exists public.diginetic_snapshots (
   id uuid primary key default gen_random_uuid(),
@@ -73,7 +73,7 @@ create table if not exists public.diginetic_events (
   data jsonb not null,
   created_at timestamptz not null default now()
 );
-create index if not exists idx_dg_events_world_tick on public.diginetic_events(world_id, tick);
+create index if not exists diginetic_events_world_tick_idx on public.diginetic_events(world_id, tick);
 
 create table if not exists public.diginetic_settings (
   user_id uuid primary key references auth.users(id) on delete cascade,
