@@ -167,27 +167,33 @@ const handlers: Record<string, (sb: any, body: any, ownerId: string | null) => P
 
   async summarize_world_tick(_sb, body) {
     const m = body?.metrics ?? { births: 0, deaths: 0, diversity: 1, tempDrift: 0 };
-    const key = Deno.env.get('LLM_GATEWAY_API_KEY');
-    if (key) {
-      try {
-        const prompt = `You narrate a digital-life world in one short poetic sentence (max 12 words, no quotes). ` +
-          `Signals — births:${m.births} deaths:${m.deaths} diversity:${(m.diversity ?? 0).toFixed(2)} tempDrift:${(m.tempDrift ?? 0).toFixed(2)}.`;
-        const r = await fetch('https://api.llmgateway.io/v1/chat/completions', {
-          method: 'POST',
-          headers: { 'Authorization': `Bearer ${key}`, 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            model: 'gemini-2.0-flash',
-            messages: [{ role: 'user', content: prompt }],
-            max_tokens: 40, temperature: 0.9,
-          }),
-        });
-        if (r.ok) {
+    // Free, keyless narration via Pollinations text (the same provider Clubhouse
+    // story-time uses). OpenAI-compatible endpoint, no API key. Falls back to the
+    // local phrase bank on any failure so a whisper is always available.
+    try {
+      const prompt = `You narrate a digital-life world in one short poetic sentence (max 12 words, no quotes). ` +
+        `Signals — births:${m.births} deaths:${m.deaths} diversity:${(m.diversity ?? 0).toFixed(2)} tempDrift:${(m.tempDrift ?? 0).toFixed(2)}.`;
+      const r = await fetch('https://text.pollinations.ai/openai', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          model: 'openai',
+          messages: [{ role: 'user', content: prompt }],
+          temperature: 0.9,
+        }),
+      });
+      if (r.ok) {
+        const ct = r.headers.get('content-type') || '';
+        let line = '';
+        if (ct.includes('application/json')) {
           const data = await r.json();
-          const line = data?.choices?.[0]?.message?.content?.trim();
-          if (line) return json({ line: line.replace(/^["']|["']$/g, '') });
+          line = (data?.choices?.[0]?.message?.content ?? '').trim();
+        } else {
+          line = (await r.text()).trim();
         }
-      } catch (_e) { /* fall through to local */ }
-    }
+        if (line) return json({ line: line.replace(/^["']|["']$/g, '') });
+      }
+    } catch (_e) { /* fall through to local */ }
     let line = 'Patterns sway beneath the surface.';
     if (m.births > m.deaths) line = 'New life gathers at the edges.';
     else if (m.deaths > m.births) line = 'Silence spreads through hidden folds.';
