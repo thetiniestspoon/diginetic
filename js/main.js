@@ -1,7 +1,8 @@
 import { World } from './world.js';
 import { mountHud } from './hud.js';
 import { pickLocalWhisper } from './whispers.js';
-import { requirePorchSession, invokeAction, getClient } from './supabase.js';
+import { requirePorchSession, invokeAction } from './supabase.js';
+import { routeShare } from './share.js';
 
 const host = document.getElementById('stage-host');
 const whisperEl = document.getElementById('whisper');
@@ -32,7 +33,15 @@ async function boot() {
   if (!ok) return;
   await app.init({ resizeTo: host, antialias: true, backgroundAlpha: 0 });
   host.appendChild(app.canvas);
-  await startWorld({ seed: { label: 'genesis' }, params: { temperature: 0, food: 0.6 } });
+  const shared = await routeShare(location.search, { invokeAction, currentWorldId: null });
+  if (shared?.action === 'clone') {
+    const { seed, params } = shared.result;
+    await startWorld({ seed, params });
+    currentWorldId = shared.result.new_world_id;
+    whisper('A world cloned. It is yours now.');
+  } else {
+    await startWorld({ seed: { label: 'genesis' }, params: { temperature: 0, food: 0.6 } });
+  }
   app.ticker.add((ticker) => {
     world.update(ticker.deltaTime);
     hud({ tick: world.tick, population: world.population, generation: world.generation, diversity: world.metrics.diversity });
