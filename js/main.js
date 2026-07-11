@@ -18,10 +18,11 @@ function whisper(text) {
   requestAnimationFrame(() => { whisperEl.style.opacity = '0.9'; });
 }
 
-async function startWorld({ seed, params, starterGenomes }) {
+async function startWorld({ seed, params, starterGenomes, worldId }) {
   world = new World(app, { seed, params });
   world.onWhisper((m) => whisper(pickLocalWhisper(m)));
   world.begin(starterGenomes);
+  if (worldId) { currentWorldId = worldId; return; }
   try {
     const res = await invokeAction('spawn_initial_world', { name: seed.label, seed, params });
     currentWorldId = res?.world_id ?? null;
@@ -36,8 +37,7 @@ async function boot() {
   const shared = await routeShare(location.search, { invokeAction, currentWorldId: null });
   if (shared?.action === 'clone') {
     const { seed, params } = shared.result;
-    await startWorld({ seed, params });
-    currentWorldId = shared.result.new_world_id;
+    await startWorld({ seed, params, worldId: shared.result.new_world_id });
     whisper('A world cloned. It is yours now.');
   } else {
     await startWorld({ seed: { label: 'genesis' }, params: { temperature: 0, food: 0.6 } });
