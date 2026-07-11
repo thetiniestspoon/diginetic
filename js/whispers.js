@@ -7,3 +7,13 @@ export function pickLocalWhisper(metrics) {
   if ((m.tempDrift ?? 0) < -0.2) return 'Cold shadows favor the still.';
   return 'Patterns sway beneath the surface.';
 }
+
+// LLM narration: asks the backend to summarize the world tick; falls back to
+// the local phrase bank on any failure so the whisper never goes silent.
+export async function narrate(metrics, invokeAction) {
+  try {
+    const res = await invokeAction('summarize_world_tick', { metrics });
+    if (res?.line) return res.line;
+  } catch (_e) { /* fall through */ }
+  return pickLocalWhisper(metrics);
+}

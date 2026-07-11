@@ -1,6 +1,6 @@
 import { World } from './world.js';
 import { mountHud } from './hud.js';
-import { pickLocalWhisper } from './whispers.js';
+import { pickLocalWhisper, narrate } from './whispers.js';
 import { requirePorchSession, invokeAction } from './supabase.js';
 import { routeShare } from './share.js';
 
@@ -20,7 +20,13 @@ function whisper(text) {
 
 async function startWorld({ seed, params, starterGenomes, worldId }) {
   world = new World(app, { seed, params });
-  world.onWhisper((m) => whisper(pickLocalWhisper(m)));
+  let lastNarrate = 0;
+  world.onWhisper(async (m) => {
+    const now = Date.now();
+    if (now - lastNarrate < 12000) { whisper(pickLocalWhisper(m)); return; } // throttle LLM to ~12s
+    lastNarrate = now;
+    whisper(await narrate(m, invokeAction));
+  });
   world.begin(starterGenomes);
   if (worldId) { currentWorldId = worldId; return; }
   try {
