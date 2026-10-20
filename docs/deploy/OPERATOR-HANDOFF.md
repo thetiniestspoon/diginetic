@@ -25,14 +25,14 @@ Destination: https://supabase.com/dashboard/project/ckjcieeccopqowlfljja/storage
 
 New bucket named `diginetic`, **Public** enabled. (Holds snapshot thumbnails.)
 
-## 3. Set the LLM narration secret (optional — narration falls back without it)
+## 3. Narration (nothing to set)
 
-Destination: https://supabase.com/dashboard/project/ckjcieeccopqowlfljja/settings/functions
-
-Add a secret: `LLM_GATEWAY_API_KEY` = <your api.llmgateway.io key>.
-Note: the edge function requests model `gemini-2.0-flash`; adjust that id in
-`supabase/functions/diginetic/index.ts` if the gateway lists a different slug.
-Without the key, whispers use the local phrase bank (fully playable).
+Nothing to configure. The edge function narrates keylessly: the
+`summarize_world_tick` action calls Pollinations text
+(`https://text.pollinations.ai/openai`) with no credential, and falls back to
+the local phrase bank on any failure, so a whisper is always available. The
+function reads only the project URL and service role that Supabase supplies to
+every function.
 
 ## 4. Deploy the edge function (blocked in auto-mode — run manually)
 
@@ -51,9 +51,8 @@ function; it does not touch the sibling games' functions.)
 
 The card art (`workshop-oakpark/assets/games/diginetic.webp`) and the GAMES
 registry entry are already applied in your **command-center working tree**, but
-that repo's local `master` is **138 commits behind origin** and the tree has
-unrelated WIP, so I did not commit/push it. Once you reconcile command-center,
-include these two paths in a commit to `master` and push — the `pages-deploy.yml`
+the tree has unrelated WIP, so I did not commit/push it. Include these two
+paths in a commit to command-center `master` and push — the `pages-deploy.yml`
 workflow will publish them to gh-pages and the card goes live:
 
 - `workshop-oakpark/rooms/playroom.js`  (one-line GAMES entry — patch also saved
